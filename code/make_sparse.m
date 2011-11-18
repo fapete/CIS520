@@ -12,6 +12,11 @@ function [X] = make_sparse(data, nf)
 colidx = vertcat(data.word_idx);
 counts = vertcat(data.word_count);
 
+% Titles
+%colidx = vertcat(data.title_idx);
+%counts = vertcat(data.title_count);
+
+
 if nargin==1
     nf = double(max(colidx));
 end
