@@ -1,7 +1,7 @@
 %% Example submission: Naive Bayes
 
 %% Load the data
-load ../data/data_no_bigrams.mat;
+load ../data/data_with_bigrams.mat;
 
 % Make the training data
 X = make_sparse(train);
@@ -33,7 +33,15 @@ te_hand = @(c, x) round(sum(bsxfun(@times, nb_test_pk(c, x'>0), ratings), 2));
 %% Adaboost cross validation:
 % now with actually useful cross validation: Trying different values for T
 % to find out which one works best. 
-possibleTs = 2:3:40;
+load ../data/data_with_bigrams.mat;
+
+% Make the training data
+X = make_sparse(train);
+Y = double([train.rating]');
+
+Xtest = make_sparse(test, size(X, 2));
+addpath (genpath('liblinear'));
+possibleTs = 2:7;
 rmse = zeros(1,numel(possibleTs));
 err = zeros(1,numel(possibleTs));
 i = 1;
@@ -45,6 +53,11 @@ for T = possibleTs
 end
 plot(possibleTs, rmse, possibleTs, err);
 %% Adaboost with T = 40 xval
-tr_hand = @(X,Y) adaboost(X,Y,40);
+tr_hand = @(X,Y) adaboost(X,Y,10);
 te_hand = @(c,x) round(adaboost_test(c,x));
 [rmse(i), err(i)] = xval_error(train, X, Y, tr_hand, te_hand);
+
+%% Liblinear xval
+tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');
+te_hand = @(c,x) liblinear_predict(ones(size(x,1),1), x, c);
+[rmse, err] = xval_error(train, X, Y, tr_hand, te_hand);
