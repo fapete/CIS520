@@ -22,6 +22,10 @@ X = make_sparse(train);
 Y = double([train.rating]');
 Xt = make_sparse_title(train);
 Xb = make_sparse_bigram(train);
+%% Make the test data
+X_test = make_sparse(test, size(X,2));
+Xt_test = make_sparse_title(test, size(Xt,2));
+Xb_test = make_sparse_bigram(test, size(Xb,2));
 %%
 XX = X;
 YY = Y;
@@ -39,8 +43,10 @@ Xb=Xbb;
 idx3 = wordfind2(X,Y,0.00033);
 idxt3 = wordfind2(Xt,Y,0.0006);
 
+
+
 %% Determine important bigram. Need to work on it further.
-idxb3 = wordfind2(Xb,Y,0.03);
+idxb3 = wordfind2(Xb,Y,0.0005);
 
 %in = union(idx,idx2)
 %idxbi = wordfind2(X,Y,0.005)
@@ -51,8 +57,9 @@ Xt = Xt(:,idxt3);
 Xb = Xb(:,idxb3);
 %%
 
-X = [X Xt Xb];
-
+D = [X(:,idx3) Xt(:,idxt3) Xb(:,idxb3)];
+%%
+D_test = [X_test(:,idx3) Xt_test(:,idxt3) Xb_test(:,idxb3)];
 %% Run training
 Yk = bsxfun(@eq, Y, [1 2 4 5]);
 nb = nb_train_pk([X]'>0, [Yk]);
@@ -90,22 +97,22 @@ Y = double([train.rating]');
 Xtest = make_sparse(test, size(X, 2));
 %%
 addpath(genpath('liblinear'));
-possibleTs = 2:7;
+possibleTs = 4:9;
 rmse = zeros(1,numel(possibleTs));
 err = zeros(1,numel(possibleTs));
 i = 1;
 for T = possibleTs
     tr_hand = @(X,Y) adaboost(X,Y,T);
     te_hand = @(c,x) round(adaboost_test(c,x));
-    [rmse(i), err(i)] = xval_error(train, X, Y, tr_hand, te_hand);
+    [rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
     i = i+1;
 end
 %%
 plot(possibleTs, rmse, possibleTs, err);
 %% Adaboost xval for singular value
-tr_hand = @(X,Y) adaboost(X,Y,6);
+tr_hand = @(X,Y) adaboost(X,Y,5);
 te_hand = @(c,x) round(adaboost_test(c,x));
-[rmse_s, err_s] = xval_error(train, Z, Y, tr_hand, te_hand);
+[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
 
 %% Liblinear xval
 tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');

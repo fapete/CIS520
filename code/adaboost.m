@@ -43,7 +43,7 @@ for t = 1:T
     %yhat = round(sum(bsxfun(@times, yhat, [1 2 3 4]), 2));
     
     %%%% Liblinear 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 7 -e 1.0', 'col');
+    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
     % use standard argmax (?) classification first
     yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');
     
