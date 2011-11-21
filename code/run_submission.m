@@ -40,7 +40,7 @@ idx3 = wordfind2(X,Y,0.00033);
 idxt3 = wordfind2(Xt,Y,0.0006);
 
 %% Determine important bigram. Need to work on it further.
-idxb3 = wordfind2(Xb,Y,0.03);
+idxb3 = wordfind2(Xb,Y,0.0009);
 
 %in = union(idx,idx2)
 %idxbi = wordfind2(X,Y,0.005)
@@ -48,10 +48,11 @@ idxb3 = wordfind2(Xb,Y,0.03);
 %%
 X = X(:,idx3);
 Xt = Xt(:,idxt3);
+%%
 Xb = Xb(:,idxb3);
 %%
 
-X = [X Xt Xb];
+D = [X(:,idx3) Xt(:,idxt3) Xb(:,idxb3)];
 
 %% Run training
 Yk = bsxfun(@eq, Y, [1 2 4 5]);
@@ -101,9 +102,9 @@ for T = possibleTs
 end
 plot(possibleTs, rmse, possibleTs, err);
 %% Adaboost with T = 40 xval
-tr_hand = @(X,Y) adaboost(X,Y,10);
+tr_hand = @(X,Y) adaboost(X,Y,6);
 te_hand = @(c,x) round(adaboost_test(c,x));
-[rmse(i), err(i)] = xval_error(train, X, Y, tr_hand, te_hand);
+[rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
 
 %% Liblinear xval
 tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');
