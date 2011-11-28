@@ -13,7 +13,7 @@ function [boost] = adaboost(X, Y, T)
 X = X';
 
 % For naive bayes training, Y needs to be in a different format
-%Yk = bsxfun(@eq, Y, [1 2 4 5]);
+Yk = bsxfun(@eq, Y, [1 2 4 5]);
 
 % Transform Y-values to [1 2 3 4] from [1 2 4 5]
 %Y(Y == 4) = 3;
@@ -34,18 +34,18 @@ for t = 1:T
     %h{t} = dt_train_multi(X(:,sampleIndices)', Y(sampleIndices), 1);
     
     %%%% Naive bayes classifier as weak learner
-    %h{t} = nb_train_pk(X(:,sampleIndices) > 0, Yk(sampleIndices,:));
+    h{t} = nb_train_pk(X(:,sampleIndices) > 0, Yk(sampleIndices,:));
     % Classify by argmax. Using expectation might be a good idea as
     % well.
     %[m a] = max(nb_test_pk(h{t}, X(:,sampleIndices) > 0), [], 2);
     % Trying to do expectation instead:
-    %yhat = nb_test_pk(h{t}, X(:, sampleIndices) > 0);
-    %yhat = round(sum(bsxfun(@times, yhat, [1 2 3 4]), 2));
+    yhat = nb_test_pk(h{t}, X(:, sampleIndices) > 0);
+    yhat = round(sum(bsxfun(@times, yhat, [1 2 3 4]), 2));
     
     %%%% Liblinear 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
+    %h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
     % use standard argmax (?) classification first
-    yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');
+    %yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');
     
     trainerrors = yhat ~= Y(sampleIndices);
     error = sum(D.*trainerrors);

@@ -1,9 +1,9 @@
 function [words] = stopwords(file)
 %%
-%file = '../data/stopwlist.txt'
+%file = '../data/pass.txt'
 
 fid = fopen(file);
-ch = textscan(fid,['%s \n']);
+ch = textscan(fid,['%s']);
 
 for i = 1:size(ch{1},1)
    

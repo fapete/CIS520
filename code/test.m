@@ -8,63 +8,110 @@ load ../data/data_with_bigrams.mat;
 train1 = train
 %%
 train = train1
+train2 = train1
+%%
+
+backt = train
+
 %% Remove Stopwords from train
 % Remarks : Makes things worse. What the hell.  
-words = stopwords('../data/stop.txt');
-%vb = vocab;
-%data = train;
+words = stopwords('../data/final.txt');
 
-train= rmstopw(train, vocab, words);
+%% STRIP OFF TRAIN
+t=CTimeleft(numel(train));
+parfor jj=1:numel(train)
+    t.timeleft();
+    train(jj)=rmstopw(train(jj), vocab, words);
+    train(jj)=rmstoptitle(train(jj),vocab,words);
+end
+
+%%
+train = train2;
+
+%%
+train(1:2) = rmstopw(train(1:2),vocab,words);
+%%
 %test = rmstopw(test,vocab,words);
-
+train = rmstoptitle(train,vocab,words);
+%%
+train = rmstopw(train,vocab,words)
 %% Make the training data
+
 X = make_sparse(train);
 Y = double([train.rating]');
 Xt = make_sparse_title(train);
+
+%%
 Xb = make_sparse_bigram(train);
+%%
+
+Xrm = make_sparse(train2);
+
 %% Make the test data
 X_test = make_sparse(test, size(X,2));
 Xt_test = make_sparse_title(test, size(Xt,2));
 Xb_test = make_sparse_bigram(test, size(Xb,2));
-%%
-XX = X;
-YY = Y;
-Xtt = Xt;
-Xbb = Xb;
-%%
-X=XX;
-Y=YY;
-Xt=Xtt;
-Xb=Xbb;
+
 %% Find set of important unigrams and reduce the number of dimensions.
+%% works good idx3 = 0.00033, idxt3 = 0.0007
 
 %idx = wordfind1(X,Y,0.001);
 %idx2 = wordfind(X,Y,0.00034);
-idx3 = wordfind2(X,Y,0.00033);
-idxt3 = wordfind2(Xt,Y,0.0006);
+
+% old version calls
+%idx3 = wordfind2(X,Y,0.00002);
+%idxt3 = wordfind2(Xt,Y,0.0001);
+
+%new calls
+idx3 = wordfind2(X,Y,2);
+idxt3 = wordfind2(Xt,Y,3);
+
+
+%%
+idid = wordfind2(Xrm, Y,0.0002);
+%%
+
+Xrm1 = X(:,idid);
+
+
+%%
+idx = setdiff(idx3,idid);
+
+%%
+matlabpool
+%%
+%Remarks : good thresh for Idx3 = 0.0009, Idxt3 = 0.0006
+%doesn't work. forget it.
+idx3 = find(fvar(X(:,idx3))>0.001);
+
+idxt3 = find(fvar(Xt(:,idxt3))>0.001);
+idxb1 = find(fvar(Xb(:,idxb3)>2));
+idxb3 = findbigrams(idx3,X,Xb,Y);
+
+%% Determine important bigram. Need to work on it further. 0.002
+%idxb3 = wordfind2(Xb,Y,0.006);
+train
 
 %%
 
-idxb3 = findbigrams(idx3,X,Xb,Y);
+idxb3 = wordfind2(Xb,Y,30);
 
+%%
 
-%% Determine important bigram. Need to work on it further.
-idxb3 = wordfind2(Xb,Y,0.0005);
-
+parfor jj = 1:size(train1,2)
+train(jj) = findbigrams(train(jj),vocab,bigram_vocab,idx3);
+end
 %in = union(idx,idx2)
 %idxbi = wordfind2(X,Y,0.005)
 
 %%
-X = X(:,idx3);
-Xt = Xt(:,idxt3);
-%%
-Xb = Xb(:,idxb3);
-%%
 
 D = [X(:,idx3) Xt(:,idxt3) Xb(:,idxb3)];
 
+
 %%
-D_test = [X_test(:,idx3) Xt_test(:,idxt3) Xb_test(:,idxb3)];
+D_test = [X_test(:,idx3) Xt_test(:,idxt3) Xb_test(:,idxb1)];
+
 %% Run training
 Yk = bsxfun(@eq, Y, [1 2 4 5]);
 nb = nb_train_pk([X]'>0, [Yk]);
@@ -88,7 +135,9 @@ save('-ascii', 'submit.txt', 'Yhat');
 ratings = [1 2 4 5];
 tr_hand = @(X,Y) nb_train_pk([X]'>0, [bsxfun(@eq, Y, [1 2 4 5])]);
 te_hand = @(c, x) round(sum(bsxfun(@times, nb_test_pk(c, x'>0), ratings), 2));
-[rmse, err] = xval_error(train, X, Y, tr_hand, te_hand);
+
+[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+%[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
 
 %% Adaboost cross validation:
 % now with actually useful cross validation: Trying different values for T
@@ -109,20 +158,25 @@ i = 1;
 for T = possibleTs
     tr_hand = @(X,Y) adaboost(X,Y,T);
     te_hand = @(c,x) round(adaboost_test(c,x));
-    [rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
+    %[rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
+    [rmse(i), err(i)] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
     i = i+1;
 end
 %%
 plot(possibleTs, rmse, possibleTs, err)
 %% Adaboost xval for singular value
-tr_hand = @(X,Y) adaboost(X,Y,5);
+tr_hand = @(X,Y) adaboost(X,Y,6);
+
 te_hand = @(c,x) round(adaboost_test(c,x));
-[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
+%[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
+[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 
 %% Liblinear xval
-tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');
+tr_hand = @(X,Y) liblinear_train(Y,X, '-s 5 -e 1.0');
 te_hand = @(c,x) liblinear_predict(ones(size(x,1),1), x, c);
-[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
+%[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
+%[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+[rmse, err] = xval_error2(train, X, Xt, Xb, Y, tr_hand, te_hand);
 
 %% k-nn xval with random projection to two dimensions
 [Z, Zt] = random_projection(X,Xtest,2);
@@ -153,3 +207,7 @@ for i = 1:N
 end
 error = 1/double(N)*sum(e);
 rmse = 1/double(N)*sum(rm);
+%%
+
+
+
