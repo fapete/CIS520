@@ -13,7 +13,7 @@ function [boost] = adaboost(X, Y, T)
 X = X';
 
 % For naive bayes training, Y needs to be in a different format
-%Yk = bsxfun(@eq, Y, [1 2 4 5]);
+Yk = bsxfun(@eq, Y, [1 2 4 5]);
 
 % Transform Y-values to [1 2 3 4] from [1 2 4 5]
 %Y(Y == 4) = 3;
@@ -43,6 +43,7 @@ for t = 1:T
     %yhat = round(sum(bsxfun(@times, yhat, [1 2 3 4]), 2));
     
     %%%% Liblinear 
+
     h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 7 -e 1.0', 'col');
     % use standard argmax (?) classification first
     yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');

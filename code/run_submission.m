@@ -19,7 +19,12 @@ Xb_test = make_sparse_bigram(test, size(Xb,2));
 
 idx3 = wordfind2(X,Y,0.00033);
 idxt3 = wordfind2(Xt,Y,0.0006);
-% Determine important bigrams. Need to work on it further.
+%%
+
+idxb3 = findbigrams(idx3,X,Xb,Y);
+
+
+%% Determine important bigrams. Need to work on it further.
 idxb3 = wordfind2(Xb,Y,0.0005);
 
 %% Generate reduced features test and training data
@@ -28,7 +33,6 @@ D_test = [X_test(:,idx3) Xt_test(:,idxt3) Xb_test(:,idxb3)];
 %% Run training
 addpath(genpath('liblinear'));
 classifier = adaboost(D, Y, 5);
-
 %% Make the testing data and run testing/make predictions
 Yhat = adaboost_test(classifier, D_test);
 
