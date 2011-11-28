@@ -126,7 +126,7 @@ te_hand = @(c,x) liblinear_predict(ones(size(x,1),1), x, c);
 [rmse, err] = xval_error(train, X, Y, tr_hand, te_hand);
 
 %% k-nn xval with random projection to two dimensions
-[Z, Zt] = random_projection(D,D_test,2);
+[Z, Zt] = random_projection(D,D_test,10);
 Z = full(Z);
 Zt = full(Zt);
 % Unfortunately my xval-function doesn't work with knn.
