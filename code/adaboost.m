@@ -43,7 +43,7 @@ for t = 1:T
     %yhat = round(sum(bsxfun(@times, yhat, [1 2 3 4]), 2));
     
     %%%% Liblinear 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
+    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 7 -e 1.0', 'col');
     % use standard argmax (?) classification first
     yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');
     
@@ -54,6 +54,10 @@ for t = 1:T
         break;
     end
     alpha(t) = error/(1-error);
+    if (alpha(t) < 0)
+        error = error
+        break;
+    end
     %logicalH = bsxfun(@xor, Y, trainerrors);
     %H = ones(n,1);
     %H(logicalH == 0) = -1;
@@ -62,6 +66,10 @@ for t = 1:T
     D = D.*temp;
     % Normalize
     D = D./sum(D);
+    if ~all(D>=0)
+        D = D;
+        break;
+    end
     %Z = sum(D .* exp(-alpha{t}*Y_d.*H));
     %D = (D .* exp(-alpha{t}*Y_d.*H))./Z;
 end

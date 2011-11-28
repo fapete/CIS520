@@ -103,7 +103,7 @@ te_hand = @(c, x) round(sum(bsxfun(@times, nb_test_pk(c, x'>0), ratings), 2));
 % now with actually useful cross validation: Trying different values for T
 % to find out which one works best. 
 addpath(genpath('liblinear'));
-possibleTs = 4:9;
+possibleTs = 2:15;
 rmse = zeros(1,numel(possibleTs));
 err = zeros(1,numel(possibleTs));
 i = 1;
