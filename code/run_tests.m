@@ -46,7 +46,7 @@ idxt3 = wordfind2(Xt,Y,0.0006);
 
 
 %% Determine important bigram. Need to work on it further.
-idxb3 = wordfind2(Xb,Y,0.0005);
+idxb3 = wordfind2(Xb,Y,0.0004);
 
 %in = union(idx,idx2)
 %idxbi = wordfind2(X,Y,0.005)
@@ -148,7 +148,7 @@ for i = 1:N
     % Train classifier with training set
     %classifier = train_handle(Di, Yi);
     % Compute error on i'th fold
-    Yhat_i = knn_test(3, Di, Yi, TX); % trying 3-nearest neighbors
+    Yhat_i = knn(Di, Yi, TX); % trying 1 nearest neighbor
     e(i) = 1/size(TX,1) * (sum(Yhat_i ~= TY));
     rm(i) = sqrt(1/size(TX,1) * sum((TY - Yhat_i).^2));
 end
