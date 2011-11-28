@@ -34,6 +34,6 @@ end
 
 %%
 
-tx = train;
+tr = train;
 
 end

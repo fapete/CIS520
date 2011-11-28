@@ -165,9 +165,9 @@ end
 %%
 plot(possibleTs, rmse, possibleTs, err)
 %% Adaboost xval for singular value
-tr_hand = @(X,Y) adaboost(X,Y,6);
+tr_hand = @(X,Y) adaboost_nb(X,Y,6);
 
-te_hand = @(c,x) round(adaboost_test(c,x));
+te_hand = @(c,x) round(adaboost_test_nb(c,x));
 %[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
 [rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 
