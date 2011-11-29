@@ -1,4 +1,4 @@
-function [X] = make_sparse(data, nf)
+function [X] = make_sparse_bigram(data, nf)
 % Returns a sparse matrix representation of the data.
 %
 % Usage:
@@ -9,13 +9,8 @@ function [X] = make_sparse(data, nf)
 % first 1....NF word features only. If NF is not specified, then uses all
 % features word features encounted in DATA.
 
-colidx = vertcat(data.word_idx);
-counts = vertcat(data.word_count);
-
-% Titles
-%colidx = vertcat(data.title_idx);
-%counts = vertcat(data.title_count);
-
+colidx = vertcat(data.bigram_idx);
+counts = vertcat(data.bigram_count);
 
 if nargin==1
     nf = double(max(colidx));
@@ -30,7 +25,7 @@ idx = 1;
 t = CTimeleft(numel(data));
 for i = 1:numel(data)
     t.timeleft();    
-    for j = 1:numel(data(i).word_idx)
+    for j = 1:numel(data(i).bigram_idx)
         rowidx(idx) = i;
         idx = idx + 1;
     end

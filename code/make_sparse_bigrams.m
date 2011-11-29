@@ -9,8 +9,8 @@ function [X] = make_sparse(data, nf)
 % first 1....NF word features only. If NF is not specified, then uses all
 % features word features encounted in DATA.
 
-colidx = vertcat(data.word_idx);
-counts = vertcat(data.word_count);
+colidx = vertcat(data.bigram_idx);
+counts = vertcat(data.bigram_count);
 
 % Titles
 %colidx = vertcat(data.title_idx);
@@ -30,7 +30,7 @@ idx = 1;
 t = CTimeleft(numel(data));
 for i = 1:numel(data)
     t.timeleft();    
-    for j = 1:numel(data(i).word_idx)
+    for j = 1:numel(data(i).bigram_idx)
         rowidx(idx) = i;
         idx = idx + 1;
     end
