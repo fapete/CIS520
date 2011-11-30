@@ -39,7 +39,7 @@ train = rmstopw(train,vocab,words)
 
 X = make_sparse(train);
 Y = double([train.rating]');
-Xt = make_sparse_title(train);
+Xt = make_sparse_title(train, size(X,2));
 
 %%
 Xb = make_sparse_bigram(train);
@@ -139,6 +139,35 @@ te_hand = @(c, x) round(sum(bsxfun(@times, nb_test_pk(c, x'>0), ratings), 2));
 [rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 %[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
 
+%% New dimension reduction:
+% Make training data
+X = make_sparse(train);
+Xt = make_sparse_title(train, size(X,2));
+Xb = make_sparse_bigram(train);
+Y = double([train.rating]');
+% Add features of title
+XXt = X + Xt;
+% Separate XXt, Xb by label and sum along m examples for all n
+% words/bigrams
+Xsum = sum(XXt);
+X5 = make_sparse_ratings(Xsum, Y, 5);
+X4 = make_sparse_ratings(Xsum, Y, 4);
+X2 = make_sparse_ratings(Xsum, Y, 2);
+X1 = make_sparse_ratings(Xsum, Y, 1);
+
+Xsumb = sum(Xb);
+X5b = make_sparse_ratings(Xsumb, Y, 5);
+X4b = make_sparse_ratings(Xsumb, Y, 4);
+X2b = make_sparse_ratings(Xsumb, Y, 2);
+X1b = make_sparse_ratings(Xsumb, Y, 1);
+
+% Dimension reduction:
+index = non_intersect_index(X5, X4, X2, X1, 0.000003);
+indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000002);
+
+% Training set:
+D = [XXt(:,index) Xb(:,indexb)];
+
 %% Adaboost cross validation:
 % now with actually useful cross validation: Trying different values for T
 % to find out which one works best. 
@@ -151,32 +180,52 @@ Y = double([train.rating]');
 Xtest = make_sparse(test, size(X, 2));
 %%
 addpath(genpath('liblinear'));
-possibleTs = 4:9;
+possibleTs = 3:8;
 rmse = zeros(1,numel(possibleTs));
 err = zeros(1,numel(possibleTs));
 i = 1;
 for T = possibleTs
     tr_hand = @(X,Y) adaboost(X,Y,T);
     te_hand = @(c,x) round(adaboost_test(c,x));
-    %[rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
-    [rmse(i), err(i)] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+    [rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
+    %[rmse(i), err(i)] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
     i = i+1;
 end
 %%
 plot(possibleTs, rmse, possibleTs, err)
-%% Adaboost xval for singular value
-tr_hand = @(X,Y) adaboost_nb(X,Y,6);
 
-te_hand = @(c,x) round(adaboost_test_nb(c,x));
-%[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
-[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+%% xval for magic threshold parameter
+possibleTs = 0.000001:0.000001:0.00001;
+rmse = zeros(1,numel(possibleTs));
+err = zeros(1,numel(possibleTs));
+i = 1;
+for T = possibleTs
+    % Dimension reduction:
+    index = non_intersect_index(X5, X4, X2, X1, 0.000003);
+    indexb = non_intersect_index(X5b, X4b, X2b, X1b, T);
+
+    % Training set:
+    D = [XXt(:,index) Xb(:,indexb)];
+
+    tr_hand = @(X,Y) adaboost(X,Y,5);
+    te_hand = @(c,x) round(adaboost_test(c,x));
+    [rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
+    %[rmse(i), err(i)] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+    i = i+1;
+end
+
+%% Adaboost xval for singular value
+tr_hand = @(X,Y) adaboost(X,Y,5);
+te_hand = @(c,x) round(adaboost_test(c,x));
+[rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
+%[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 
 %% Liblinear xval
-tr_hand = @(X,Y) liblinear_train(Y,X, '-s 5 -e 1.0');
+tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');
 te_hand = @(c,x) liblinear_predict(ones(size(x,1),1), x, c);
 %[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
 %[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
-[rmse, err] = xval_error2(train, X, Xt, Xb, Y, tr_hand, te_hand);
+[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 
 %% k-nn xval with random projection to two dimensions
 [Z, Zt] = random_projection(X,Xtest,2);

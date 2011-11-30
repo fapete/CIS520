@@ -49,10 +49,10 @@ for t = 1:T
     
     trainerrors = yhat ~= Y(sampleIndices);
     error = sum(D.*trainerrors);
-    if error > 0.5
-        T = t-1
-        break;
-    end
+%    if error > 0.5
+%        T = t-1
+%        break;
+%    end
     alpha(t) = error/(1-error);
     %logicalH = bsxfun(@xor, Y, trainerrors);
     %H = ones(n,1);

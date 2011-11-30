@@ -44,21 +44,13 @@ for t = 1:T
     
     %%%% Liblinear 
 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 7 -e 1.0', 'col');
+    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
     % use standard argmax (?) classification first
-    yhat = liblinear_predict(ones(n,1), X(:,sampleIndices), h{t}, '', 'col');
+    yhat = liblinear_predict(ones(n,1), X, h{t}, '', 'col');
     
-    trainerrors = yhat ~= Y(sampleIndices);
+    trainerrors = yhat ~= Y;
     error = sum(D.*trainerrors);
-    if error > 0.5
-        T = t-1
-        break;
-    end
     alpha(t) = error/(1-error);
-    if (alpha(t) < 0)
-        error = error
-        break;
-    end
     %logicalH = bsxfun(@xor, Y, trainerrors);
     %H = ones(n,1);
     %H(logicalH == 0) = -1;
