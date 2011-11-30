@@ -3,7 +3,7 @@
 %% Load the data
 clear all
 load ../data/data_with_bigrams.mat;
-
+beep
 %%
 train1 = train
 %%
@@ -167,7 +167,7 @@ indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000002);
 
 % Training set:
 D = [XXt(:,index) Xb(:,indexb)];
-
+beep
 %% Adaboost cross validation:
 % now with actually useful cross validation: Trying different values for T
 % to find out which one works best. 
@@ -201,19 +201,19 @@ err = zeros(1,numel(possibleTs));
 i = 1;
 for T = possibleTs
     % Dimension reduction:
-    index = non_intersect_index(X5, X4, X2, X1, 0.000003);
-    indexb = non_intersect_index(X5b, X4b, X2b, X1b, T);
+    index = non_intersect_index(X5, X4, X2, X1, T);
+    indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0);
 
     % Training set:
     D = [XXt(:,index) Xb(:,indexb)];
 
-    tr_hand = @(X,Y) adaboost(X,Y,5);
+    tr_hand = @(X,Y) adaboost(X,Y,8);
     te_hand = @(c,x) round(adaboost_test(c,x));
     [rmse(i), err(i)] = xval_error(train, D, Y, tr_hand, te_hand);
     %[rmse(i), err(i)] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
     i = i+1;
 end
-
+beep
 %% Adaboost xval for singular value
 tr_hand = @(X,Y) adaboost(X,Y,5);
 te_hand = @(c,x) round(adaboost_test(c,x));
