@@ -11,7 +11,8 @@ id = zeros(5,size(X,2));
 t = CTimeleft(4);
 %%
     for i=[1 2 4 5]
-       %% 
+       %%
+       t.timeleft();    
         %rows = find(Y==i);
         
             A = sum(X(Y==i,:));
@@ -24,7 +25,6 @@ t = CTimeleft(4);
            end
             %%      
                
-      t.timeleft();    
     end
     
     %%

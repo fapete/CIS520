@@ -44,7 +44,7 @@ for t = 1:T
     
     %%%% Liblinear 
 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
+    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 7 -e 1.0', 'col');
     % use standard argmax (?) classification first
     yhat = liblinear_predict(ones(n,1), X, h{t}, '', 'col');
     

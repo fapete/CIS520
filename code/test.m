@@ -180,7 +180,7 @@ Y = double([train.rating]');
 Xtest = make_sparse(test, size(X, 2));
 %%
 addpath(genpath('liblinear'));
-possibleTs = 3:8;
+possibleTs = 8:15;
 rmse = zeros(1,numel(possibleTs));
 err = zeros(1,numel(possibleTs));
 i = 1;

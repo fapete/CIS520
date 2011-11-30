@@ -42,7 +42,7 @@ D = [XXt(:,index) Xb(:,indexb)];
 D_test = [XXt_test(:,index) Xb_test(:,indexb)];
 %% Run training
 addpath(genpath('liblinear'));
-classifier = adaboost(D, Y, 4);
+classifier = adaboost(D, Y, 14);
 %% Make the testing data and run testing/make predictions
 Yhat = adaboost_test(classifier, D_test);
 
