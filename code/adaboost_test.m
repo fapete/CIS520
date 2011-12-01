@@ -13,7 +13,8 @@ Xtest = Xtest';
 n = size(Xtest,2);
 Yhat = zeros(n, 1);
 
-Yhats = zeros(n, 5);
+Yhats = zeros(n, 5); % Liblinear
+%Yhats = zeros(n, 4); % Decision stumps
 % For every example, sum how many classifiers classify that example as 1..4
 for t = 1:numel(boost.h)
     %%%% Naive Bayes
@@ -28,15 +29,26 @@ for t = 1:numel(boost.h)
     for i = 1:n
         Yhats(i, class(i)) = Yhats(i, class(i)) + log(1/boost.alpha(t));
     end
+    
+    %%%% Decision stumps
+    
+    %for i = 1:n
+    %    class = dt_value(boost.h{t}, Xtest(:,i));
+    %    Yhats(i, class(i)) = Yhats(i, class(i)) + log(1/boost.alpha(t));
+    %end
 end
 
 % Get the argmax for classification
 %[m Yhat] = max(Yhats, [], 2);
+
+%%%% Liblinear
 % Lets try making a distribution out of every line of Yhats and then take
 % the expectation of that for classification...
 normalizers = sum(Yhats, 2);
 Yhat = bsxfun(@rdivide, Yhats, normalizers);
-Yhat = sum(bsxfun(@times, Yhat, [1 2 0 4 5]), 2);
+Yhat = sum(bsxfun(@times, Yhat, [1 2 0 4 5]), 2); % Liblinear
+%Yhat = sum(bsxfun(@times, Yhat, [1 2 3 4]), 2); % Decision stumps
+
 %Yhat = round(Yhat);
 
 % Convert results to [1 2 4 5] from [1 2 3 4]

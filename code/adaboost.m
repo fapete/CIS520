@@ -31,7 +31,7 @@ alpha = zeros(1,T);
 for t = 1:T
     trainerrors = zeros(n,1);
     sampleIndices = randsample(n,n,true,D);
-    %h{t} = dt_train_multi(X(:,sampleIndices)', Y(sampleIndices), 1);
+    
     
     %%%% Naive bayes classifier as weak learner
     %h{t} = nb_train_pk(X(:,sampleIndices) > 0, Yk(sampleIndices,:));
@@ -44,9 +44,17 @@ for t = 1:T
     
     %%%% Liblinear 
 
-    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 6 -e 1.0', 'col');
+    h{t} = liblinear_train(Y(sampleIndices), X(:,sampleIndices), '-s 5 -e 1.0', 'col');
     % use standard argmax (?) classification first
     yhat = liblinear_predict(ones(n,1), X, h{t}, '', 'col');
+    
+    %%%% Decision stumps
+    %h{t} = dt_train_multi(X(:,sampleIndices)', Y(sampleIndices), 1);
+    %yhat = zeros(n, 1);
+    %for i = 1:n
+        % We use argmax first
+    %    [~, yhat(i)] = max(dt_value(h{t}, X(:,i)));
+    %end
     
     trainerrors = yhat ~= Y;
     error = sum(D.*trainerrors);

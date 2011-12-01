@@ -34,8 +34,8 @@ X2b = make_sparse_ratings(Xsumb, Y, 2);
 X1b = make_sparse_ratings(Xsumb, Y, 1);
 
 % Dimension reduction:
-index = non_intersect_index(X5, X4, X2, X1, 0.000003);
-indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000002);
+index = non_intersect_index(X5, X4, X2, X1, 0.000001);
+indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000007);
 
 %% Generate reduced features test and training data
 D = [XXt(:,index) Xb(:,indexb)];

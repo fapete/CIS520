@@ -94,7 +94,7 @@ train
 
 %%
 
-idxb3 = wordfind2(Xb,Y,30);
+idxb3 = wordfind2(Xb,Y,500);
 
 %%
 
@@ -147,7 +147,7 @@ Xb = make_sparse_bigram(train);
 Y = double([train.rating]');
 % Add features of title
 XXt = X + Xt;
-% Separate XXt, Xb by label and sum along m examples for all n
+%% Separate XXt, Xb by label and sum along m examples for all n
 % words/bigrams
 Xsum = sum(XXt);
 X5 = make_sparse_ratings(Xsum, Y, 5);
@@ -162,10 +162,14 @@ X2b = make_sparse_ratings(Xsumb, Y, 2);
 X1b = make_sparse_ratings(Xsumb, Y, 1);
 
 % Dimension reduction:
-index = non_intersect_index(X5, X4, X2, X1, 0.000003);
-indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000002);
+index = non_intersect_index(X5, X4, X2, X1, 0.000001);
+indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.000007);
 
-% Training set:
+%index = non_intersect_index(X5, X4, X2, X1, 0.001);
+%indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0.007);
+
+
+%% Training set:
 D = [XXt(:,index) Xb(:,indexb)];
 beep
 %% Adaboost cross validation:
@@ -201,8 +205,8 @@ err = zeros(1,numel(possibleTs));
 i = 1;
 for T = possibleTs
     % Dimension reduction:
-    index = non_intersect_index(X5, X4, X2, X1, T);
-    indexb = non_intersect_index(X5b, X4b, X2b, X1b, 0);
+    index = non_intersect_index(X5, X4, X2, X1, 0.000001);
+    indexb = non_intersect_index(X5b, X4b, X2b, X1b, T);
 
     % Training set:
     D = [XXt(:,index) Xb(:,indexb)];
@@ -215,18 +219,18 @@ for T = possibleTs
 end
 beep
 %% Adaboost xval for singular value
-tr_hand = @(X,Y) adaboost(X,Y,5);
+tr_hand = @(X,Y) adaboost(X,Y,15);
 te_hand = @(c,x) round(adaboost_test(c,x));
 [rmse_s, err_s] = xval_error(train, D, Y, tr_hand, te_hand);
 %[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
 
 %% Liblinear xval
-tr_hand = @(X,Y) liblinear_train(Y,X, '-s 6 -e 1.0');
+tr_hand = @(X,Y) liblinear_train(Y,X, '-s 5 -e 1.0');
 te_hand = @(c,x) liblinear_predict(ones(size(x,1),1), x, c);
-%[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
+[rmse, err] = xval_error(train, D, Y, tr_hand, te_hand);
 %[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
-[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
-
+%[rmse, err] = xval_error2(train, X(:,idx3), Xt(:,idxt3), Xb(:,idxb3), Y, tr_hand, te_hand);
+beep
 %% k-nn xval with random projection to two dimensions
 [Z, Zt] = random_projection(X,Xtest,2);
 Z = full(Z);
